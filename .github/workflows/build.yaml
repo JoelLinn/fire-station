@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y --no-install-recommends build-essential ninja-build
+
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Build Project
+        run: |
+          mkdir cmake-build
+          cmake -S . -B cmake-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cd cmake-build
+          cmake --build .
+          cpack -G DEB -D CPACK_OUTPUT_FILE_PREFIX=../pkg
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: pkg/*.deb
