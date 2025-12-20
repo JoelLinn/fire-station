@@ -18,7 +18,11 @@ configure_file(Config.h.in include/Config.h)
 
 add_executable(fire-station
         main.cpp
+        process.cpp
+        simple_ng.c
         Format.hpp
+        process.hpp
+        simple_ng.h
         ${CMAKE_CURRENT_BINARY_DIR}/include/Config.h
 )
 target_include_directories(fire-station PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
