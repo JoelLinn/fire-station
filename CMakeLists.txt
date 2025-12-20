@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.28)
 include(FetchContent)
 
 project(fire-station VERSION 1.0.0 LANGUAGES C CXX)
