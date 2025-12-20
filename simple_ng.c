@@ -1,3 +1,5 @@
+// clang-format off
+
 /** \file
  * \brief Example code for Simple Open EtherCAT master
  *
@@ -12,17 +14,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "simple_ng.h"
+
+#define DEBUG_OUTPUT 0
+
 typedef struct
 {
    ecx_contextt context;
-   char *iface;
+   const char *iface;
    uint8 group;
    int roundtrip_time;
    uint8 map[4096];
+
+   process_callback_t process_callback;
 } Fieldbus;
 
 static void
-fieldbus_initialize(Fieldbus *fieldbus, char *iface)
+fieldbus_initialize(Fieldbus *fieldbus, const char *iface, process_callback_t process_callback)
 {
    /* Let's start by 0-filling `fieldbus` to avoid surprises */
    memset(fieldbus, 0, sizeof(*fieldbus));
@@ -30,6 +38,8 @@ fieldbus_initialize(Fieldbus *fieldbus, char *iface)
    fieldbus->iface = iface;
    fieldbus->group = 0;
    fieldbus->roundtrip_time = 0;
+
+   fieldbus->process_callback = process_callback;
 }
 
 static int
@@ -173,13 +183,18 @@ fieldbus_dump(Fieldbus *fieldbus)
 
    wkc = fieldbus_roundtrip(fieldbus);
    expected_wkc = grp->outputsWKC * 2 + grp->inputsWKC;
+#if DEBUG_OUTPUT
    printf("%6d usec  WKC %d", fieldbus->roundtrip_time, wkc);
+#endif
    if (wkc < expected_wkc)
    {
       printf(" wrong (expected %d)\n", expected_wkc);
       return FALSE;
    }
 
+   fieldbus->process_callback(grp->inputs, grp->outputs);
+
+#if DEBUG_OUTPUT
    printf("  O:");
    for (n = 0; n < grp->Obytes; ++n)
    {
@@ -191,6 +206,9 @@ fieldbus_dump(Fieldbus *fieldbus)
       printf(" %02X", grp->inputs[n]);
    }
    printf("  T: %lld\r", (long long)context->DCtime);
+#else
+   (void)n;
+#endif
    return TRUE;
 }
 
@@ -267,36 +285,20 @@ fieldbus_check_state(Fieldbus *fieldbus)
    }
 }
 
-int main(int argc, char *argv[])
+int plc_thread(const char *iface, process_callback_t process_callback, volatile bool *keep_running)
 {
    Fieldbus fieldbus;
 
-   if (argc != 2)
-   {
-      ec_adaptert *adapter = NULL;
-      ec_adaptert *head = NULL;
-      printf("Usage: simple_ng IFNAME1\n"
-             "IFNAME1 is the NIC interface name, e.g. 'eth0'\n");
-
-      printf("\nAvailable adapters:\n");
-      head = adapter = ec_find_adapters();
-      while (adapter != NULL)
-      {
-         printf("    - %s  (%s)\n", adapter->name, adapter->desc);
-         adapter = adapter->next;
-      }
-      ec_free_adapters(head);
-      return 1;
-   }
-
-   fieldbus_initialize(&fieldbus, argv[1]);
+   fieldbus_initialize(&fieldbus, iface, process_callback);
    if (fieldbus_start(&fieldbus))
    {
       int i, min_time, max_time;
       min_time = max_time = 0;
-      for (i = 1; i <= 10000; ++i)
+      for (i = 1; keep_running; ++i)
       {
+#if DEBUG_OUTPUT
          printf("Iteration %4d:", i);
+#endif
          if (!fieldbus_dump(&fieldbus))
          {
             fieldbus_check_state(&fieldbus);
