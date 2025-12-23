@@ -4,6 +4,7 @@
 
 namespace FireStation::Process {
 struct Inputs {
+    // EL1008
     bool AlarmBtn : 1;
     bool AlarmActive : 1;
     bool Gate1NotClosed : 1;
@@ -15,6 +16,7 @@ struct Inputs {
 };
 
 struct Outputs {
+    // EL2008
     bool LightParking : 1;
     bool LightYard : 1;
     bool Gate1Open : 1;
