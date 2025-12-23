@@ -319,7 +319,8 @@ int plc_thread(const char *iface, process_callback_t process_callback, volatile 
       }
       printf("\nRoundtrip time (usec): min %d max %d\n", min_time, max_time);
       fieldbus_stop(&fieldbus);
+      return 0;
    }
 
-   return 0;
+   return 1;
 }
