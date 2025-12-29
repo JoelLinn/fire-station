@@ -42,4 +42,4 @@ std::string sha256ToHex(uint8_t digest[SHA256_LENGTH]) {
     hex.resize(SHA256_LENGTH * 2);
     return hex;
 }
-}
+} // namespace FireStation

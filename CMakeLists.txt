@@ -12,6 +12,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_STATIC_LIBS ON)
 
+option(FIRE_STATION_ETHERCAT_DUMMY "Disable EtherCat communication and run with dummy data" OFF)
+
 include(cmake/cJSON.cmake)
 include(cmake/curl.cmake)
 include(cmake/disruptorplus.cmake)
@@ -22,13 +24,27 @@ find_package(OpenSSL REQUIRED)
 configure_file(Config.h.in include/Config.h)
 
 add_executable(fire-station
-        main.cpp
-        process.cpp
-        simple_ng.c
-        Format.hpp
-        process.hpp
-        simple_ng.h
+        Alarms.hpp
+        Announcements.cpp
+        Announcements.hpp
+        Announcer.cpp
+        Announcer.hpp
         ${CMAKE_CURRENT_BINARY_DIR}/include/Config.h
+        Controller.cpp
+        Controller.hpp
+        Format.hpp
+        Ipc.hpp
+        PushListener.cpp
+        PushListener.hpp
+        RaiiHelpers.hpp
+        Sha256.cpp
+        Sha256.hpp
+        SpinQueue.hpp
+        TtsDispatcher.cpp
+        TtsDispatcher.hpp
+        main.cpp
+        $<IF:$<BOOL:${FIRE_STATION_ETHERCAT_DUMMY}>,simple_ng_dummy.cpp,simple_ng.c>
+        simple_ng.h
 )
 target_include_directories(fire-station PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_link_libraries(fire-station PRIVATE
