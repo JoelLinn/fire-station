@@ -18,28 +18,42 @@
 
 #define DEBUG_OUTPUT 0
 
-typedef struct
+struct SFieldbus
 {
    ecx_contextt context;
-   const char *iface;
+   char iface[256];
    uint8 group;
    int roundtrip_time;
    uint8 map[4096];
 
    process_callback_t process_callback;
-} Fieldbus;
+   void *userdata;
+};
 
-static void
-fieldbus_initialize(Fieldbus *fieldbus, const char *iface, process_callback_t process_callback)
+Fieldbus *
+fieldbus_alloc(void)
+{
+   return (Fieldbus *)calloc(1, sizeof(Fieldbus));
+}
+
+void
+fieldbus_free(Fieldbus *fieldbus)
+{
+    free(fieldbus);
+}
+
+void
+fieldbus_initialize(Fieldbus *fieldbus, const char *iface, process_callback_t process_callback, void *userdata)
 {
    /* Let's start by 0-filling `fieldbus` to avoid surprises */
    memset(fieldbus, 0, sizeof(*fieldbus));
 
-   fieldbus->iface = iface;
+   strncpy(fieldbus->iface, iface, sizeof(fieldbus->iface) - 1);
    fieldbus->group = 0;
    fieldbus->roundtrip_time = 0;
 
    fieldbus->process_callback = process_callback;
+   fieldbus->userdata = userdata;
 }
 
 static int
@@ -61,7 +75,7 @@ fieldbus_roundtrip(Fieldbus *fieldbus)
    return wkc;
 }
 
-static boolean
+bool
 fieldbus_start(Fieldbus *fieldbus)
 {
    ecx_contextt *context;
@@ -192,7 +206,7 @@ fieldbus_dump(Fieldbus *fieldbus)
       return FALSE;
    }
 
-   fieldbus->process_callback(grp->inputs, grp->outputs);
+   fieldbus->process_callback(fieldbus->userdata, grp->inputs, grp->outputs);
 
 #if DEBUG_OUTPUT
    printf("  O:");
@@ -285,42 +299,34 @@ fieldbus_check_state(Fieldbus *fieldbus)
    }
 }
 
-int plc_thread(const char *iface, process_callback_t process_callback, volatile bool *keep_running)
+void fieldbus_loop(Fieldbus *fieldbus, const volatile bool *keep_running)
 {
-   Fieldbus fieldbus;
-
-   fieldbus_initialize(&fieldbus, iface, process_callback);
-   if (fieldbus_start(&fieldbus))
-   {
       int i, min_time, max_time;
       min_time = max_time = 0;
-      for (i = 1; keep_running; ++i)
+
+      for (i = 1; *keep_running; ++i)
       {
 #if DEBUG_OUTPUT
          printf("Iteration %4d:", i);
 #endif
-         if (!fieldbus_dump(&fieldbus))
+         if (!fieldbus_dump(fieldbus))
          {
-            fieldbus_check_state(&fieldbus);
+            fieldbus_check_state(fieldbus);
          }
          else if (i == 1)
          {
-            min_time = max_time = fieldbus.roundtrip_time;
+            min_time = max_time = fieldbus->roundtrip_time;
          }
-         else if (fieldbus.roundtrip_time < min_time)
+         else if (fieldbus->roundtrip_time < min_time)
          {
-            min_time = fieldbus.roundtrip_time;
+            min_time = fieldbus->roundtrip_time;
          }
-         else if (fieldbus.roundtrip_time > max_time)
+         else if (fieldbus->roundtrip_time > max_time)
          {
-            max_time = fieldbus.roundtrip_time;
+            max_time = fieldbus->roundtrip_time;
          }
          osal_usleep(5000);
       }
       printf("\nRoundtrip time (usec): min %d max %d\n", min_time, max_time);
-      fieldbus_stop(&fieldbus);
-      return 0;
-   }
-
-   return 1;
+      fieldbus_stop(fieldbus);
 }

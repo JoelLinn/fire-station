@@ -4,9 +4,16 @@ extern "C" {
 
 #include <stdbool.h>
 
-typedef void (*process_callback_t)(const void *in, void *out);
+typedef struct SFieldbus Fieldbus;
 
-int plc_thread(const char *iface, process_callback_t process_callback, volatile bool *keep_running);
+typedef void (*process_callback_t)(void *userdata, const void *in, void *out);
+
+Fieldbus *
+fieldbus_alloc(void);
+void fieldbus_free(Fieldbus *fieldbus);
+void fieldbus_initialize(Fieldbus *fieldbus, const char *iface, process_callback_t process_callback, void *userdata);
+bool fieldbus_start(Fieldbus *fieldbus);
+void fieldbus_loop(Fieldbus *fieldbus, const volatile bool *keep_running);
 
 #ifdef __cplusplus
 }
