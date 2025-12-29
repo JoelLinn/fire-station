@@ -1,0 +1,78 @@
+find_package(CURL 8.17 COMPONENTS WS WSS)
+
+set(HAVE_CURL_WS ${CURL_FOUND})
+
+if(HAVE_CURL_WS)
+    message(STATUS "====== Using system curl ======")
+else()
+    message(STATUS "====== Fetching curl ======")
+
+    FetchContent_Declare(
+            curl
+            URL https://github.com/curl/curl/releases/download/curl-8_17_0/curl-8.17.0.tar.gz
+            URL_HASH SHA512=88ab4b7aac12b26a6ad32fb0e1a9675288a45894438cb031102ef5d4ab6b33c2bc99cae0c70b71bdfa12eb49762827e2490555114c5eb4a6876b95e1f2a4eb74
+            EXCLUDE_FROM_ALL
+            OVERRIDE_FIND_PACKAGE
+    )
+
+    set(BUILD_CURL_EXE OFF)
+    set(CURL_DISABLE_INSTALL ON)
+    set(CURL_LTO ON)
+    set(ENABLE_THREADED_RESOLVER OFF)
+
+
+    set(CURL_ENABLE_EXPORT_TARGET OFF)
+
+    set(CURL_DISABLE_ALTSVC ON)
+    set(CURL_DISABLE_SRP ON)
+    set(CURL_DISABLE_COOKIES ON)
+    set(CURL_DISABLE_KERBEROS_AUTH ON)
+    set(CURL_DISABLE_AWS ON)
+    set(CURL_DISABLE_DICT ON)
+    set(CURL_DISABLE_DOH ON)
+    set(CURL_DISABLE_FILE ON)
+    set(CURL_DISABLE_FTP ON)
+    set(CURL_DISABLE_GOPHER ON)
+    set(CURL_DISABLE_HEADERS_API ON)
+    set(CURL_DISABLE_HSTS ON)
+    set(CURL_DISABLE_IMAP ON)
+    set(CURL_DISABLE_LDAP ON)
+    set(CURL_DISABLE_LDAPS ON)
+    set(CURL_DISABLE_MIME ON)
+    set(CURL_DISABLE_FORM_API ON)
+    set(CURL_DISABLE_MQTT ON)
+    set(CURL_DISABLE_BINDLOCAL ON)
+    set(CURL_DISABLE_NETRC ON)
+    set(CURL_DISABLE_NTLM ON)
+    set(CURL_DISABLE_PARSEDATE ON)
+    set(CURL_DISABLE_POP3 ON)
+    set(CURL_DISABLE_PROXY ON)
+    set(CURL_DISABLE_IPFS ON)
+    set(CURL_DISABLE_RTSP ON)
+    set(CURL_DISABLE_SMB ON)
+    set(CURL_DISABLE_SMTP ON)
+    set(CURL_DISABLE_SOCKETPAIR ON)
+    set(CURL_DISABLE_TELNET ON)
+    set(CURL_DISABLE_TFTP ON)
+
+    set(ENABLE_UNIX_SOCKETS OFF)
+    set(ENABLE_THREADED_RESOLVER OFF)
+
+    set(CURL_USE_LIBPSL OFF)
+
+    set(BUILD_LIBCURL_DOCS OFF)
+    set(BUILD_MISC_DOCS OFF)
+    set(ENABLE_CURL_MANUAL OFF)
+
+    set(TMP_BUILD_TESTING ${BUILD_TESTING})
+    set(TMP_BUILD_EXAMPLES ${BUILD_EXAMPLES})
+
+    set(BUILD_TESTING OFF)
+    set(BUILD_EXAMPLES OFF)
+
+    FetchContent_MakeAvailable(curl)
+    find_package(CURL 8.17 COMPONENTS WS WSS)
+
+    set(BUILD_TESTING ${TMP_BUILD_TESTING})
+    set(BUILD_EXAMPLES ${TMP_BUILD_EXAMPLES})
+endif()

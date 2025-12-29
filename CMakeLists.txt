@@ -9,10 +9,15 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(BUILD_SHARED_LIBS FALSE)
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_STATIC_LIBS ON)
 
+include(cmake/cJSON.cmake)
+include(cmake/curl.cmake)
+include(cmake/disruptorplus.cmake)
 include(cmake/fmt.cmake)
 include(cmake/SOEM.cmake)
+find_package(OpenSSL REQUIRED)
 
 configure_file(Config.h.in include/Config.h)
 
@@ -26,7 +31,14 @@ add_executable(fire-station
         ${CMAKE_CURRENT_BINARY_DIR}/include/Config.h
 )
 target_include_directories(fire-station PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
-target_link_libraries(fire-station soem)
+target_link_libraries(fire-station PRIVATE
+        cJSON
+        CURL::libcurl
+        disruptorplus
+        fmt
+        OpenSSL::Crypto
+        soem
+)
 target_compile_options(fire-station PRIVATE -Wall -Wextra -pedantic)
 
 install(TARGETS fire-station)

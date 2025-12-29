@@ -17,6 +17,7 @@ endif()
 
 if(HAVE_STD_FORMAT)
     message(STATUS "====== Using std::format ======")
+    add_library(fmt INTERFACE)
 else()
     message(STATUS "====== Fetching fmtlib ======")
     FetchContent_Declare(
