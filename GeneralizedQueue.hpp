@@ -2,27 +2,31 @@
 
 #include <chrono>
 #include <optional>
+#include <type_traits>
 
+#include "disruptorplus/blocking_wait_strategy.hpp"
 #include "disruptorplus/ring_buffer.hpp"
 #include "disruptorplus/sequence_barrier.hpp"
 #include "disruptorplus/single_threaded_claim_strategy.hpp"
 #include "disruptorplus/spin_wait_strategy.hpp"
 
 namespace FireStation {
-template <typename T>
-class SpinQueue {
+template <typename T, bool BLOCKING>
+class GeneralizedQueue {
   private:
+    using WaitStrategy = std::conditional_t<BLOCKING, disruptorplus::blocking_wait_strategy, disruptorplus::spin_wait_strategy>;
+
     disruptorplus::ring_buffer<T> _buffer;
-    disruptorplus::spin_wait_strategy _waitStrategy;
-    disruptorplus::single_threaded_claim_strategy<disruptorplus::spin_wait_strategy> _claimStrategy;
-    disruptorplus::sequence_barrier<disruptorplus::spin_wait_strategy> _consumed;
+    WaitStrategy _waitStrategy;
+    disruptorplus::single_threaded_claim_strategy<WaitStrategy> _claimStrategy;
+    disruptorplus::sequence_barrier<WaitStrategy> _consumed;
 
     disruptorplus::sequence_t _nextToRead;
 
   public:
-    SpinQueue() = delete;
+    GeneralizedQueue() = delete;
 
-    explicit SpinQueue(size_t size)
+    explicit GeneralizedQueue(size_t size)
         : _buffer(size), _waitStrategy(), _claimStrategy(size, _waitStrategy), _consumed(_waitStrategy), _nextToRead(0) {
         _claimStrategy.add_claim_barrier(_consumed);
     }

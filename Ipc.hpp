@@ -4,7 +4,7 @@
 
 #include "Alarms.hpp"
 #include "Announcements.hpp"
-#include "SpinQueue.hpp"
+#include "GeneralizedQueue.hpp"
 
 namespace FireStation::IPC {
 // Send by terminating thread to outgoing Fifos with blocking consumers
@@ -23,15 +23,15 @@ using TtsOrder = std::variant<Bye, TtsOrderData>;
 
 using Announcement = std::variant<Bye, StaticAnnouncement, TtsHash>;
 
-using NewAlarmFifo = SpinQueue<NewAlarm>;
-using TtsOrderFifo = SpinQueue<TtsOrder>; // TODO Use blocking Fifo but first remove unnecessary lock for submission in disruptorplus
-using TtsReadyFifo = SpinQueue<TtsHash>;
-using AnnouncementFifo = SpinQueue<Announcement>; // TODO Use blocking Fifo but first remove unnecessary lock for submission in disruptorplus
+using NewAlarmFifo = GeneralizedQueue<NewAlarm, false>;
+using TtsOrderFifo = GeneralizedQueue<TtsOrder, true>;
+using TtsReadyFifo = GeneralizedQueue<TtsHash, false>;
+using AnnouncementFifo = GeneralizedQueue<Announcement, true>;
 
 struct FifoSet {
     NewAlarmFifo NewAlarm{4};
     TtsOrderFifo TtsOrder{4};
     TtsReadyFifo TtsReady{8};
-    AnnouncementFifo Announcement{8};
+    AnnouncementFifo Announcement{4};
 };
 } // namespace FireStation::IPC

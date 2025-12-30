@@ -8,10 +8,9 @@
 
 #include "Announcer.hpp"
 #include "Controller.hpp"
-#include "Format.hpp"
+#include "GeneralizedQueue.hpp"
 #include "Ipc.hpp"
 #include "PushListener.hpp"
-#include "SpinQueue.hpp"
 #include "TtsDispatcher.hpp"
 
 constexpr size_t MESSAGE_BUFFER_SIZE = 256;

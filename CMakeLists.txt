@@ -33,13 +33,13 @@ add_executable(fire-station
         Controller.cpp
         Controller.hpp
         Format.hpp
+        GeneralizedQueue.hpp
         Ipc.hpp
         PushListener.cpp
         PushListener.hpp
         RaiiHelpers.hpp
         Sha256.cpp
         Sha256.hpp
-        SpinQueue.hpp
         TtsDispatcher.cpp
         TtsDispatcher.hpp
         main.cpp
