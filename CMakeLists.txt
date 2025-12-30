@@ -30,6 +30,8 @@ add_executable(fire-station
         Announcer.cpp
         Announcer.hpp
         ${CMAKE_CURRENT_BINARY_DIR}/include/BuildConfig.h
+        Config.cpp
+        Config.hpp
         Controller.cpp
         Controller.hpp
         Format.hpp
