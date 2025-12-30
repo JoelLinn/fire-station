@@ -58,6 +58,7 @@ class Controller {
 
     struct Alarm {
         TtsHash Hash{};
+        std::bitset<2> Gates;
         Clock::time_point Time{};
         bool TtsReady{false};
     };

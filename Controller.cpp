@@ -59,11 +59,11 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
             Alarms.erase(Alarms.begin());
         }
         // Save to our List
-        Alarms.push_back({alarmHash, alarm->Time, false});
+        Alarms.push_back({alarmHash, alarm->Gates, alarm->Time, false});
         FifoSet.TtsOrder.TryPut(IPC::TtsOrderData{std::move(alarm->Text), alarmHash});
 
-        // TODO implement full announcement logic
-        FifoSet.Announcement.TryPut(StaticAnnouncement::GONG_SHORT);
+        // Play long gong for new alarms
+        FifoSet.Announcement.TryPut(StaticAnnouncement::GONG_LONG);
     }
 
     // Update alarm tts status
@@ -82,7 +82,7 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
         }
         alarmIt->TtsReady = true;
 
-        // TODO implement full announcement logic
+        // Play alarm content when new (should happen after initial long gong)
         FifoSet.Announcement.TryPut(alarmIt->Hash);
     }
 
@@ -102,11 +102,25 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
             }
         }
 
-        outputs.LightParking = Alarms.size() > 0;
+        outputs.LightParking = !Alarms.empty();
 
         if (inputs.AlarmBtn && !AlarmBtnLast) {
-            // TODO implement full announcement logic
             FifoSet.Announcement.TryPut(StaticAnnouncement::GONG_SHORT);
+            // Repeat alarm content after short gong
+            if (!Alarms.empty()) {
+                FifoSet.Announcement.TryPut(Alarms.back().Hash);
+            }
+        }
+
+        if (inputs.AlarmActive) {
+            if (!Alarms.empty()) {
+                // TODO Check if gates can still be closed by other inputs (remote)
+                const auto &gates = Alarms.back().Gates;
+                outputs.Gate1Open = gates.test(0);
+                outputs.Gate2Open = gates.test(1);
+            }
+        } else {
+            outputs.Gate1Open = outputs.Gate2Open = false;
         }
 
         AlarmBtnLast = inputs.AlarmBtn;
