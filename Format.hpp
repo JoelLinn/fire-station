@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "BuildConfig.h"
 
 #ifdef HAVE_STD_FORMAT
 #include <format>

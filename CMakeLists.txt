@@ -21,7 +21,7 @@ include(cmake/fmt.cmake)
 include(cmake/SOEM.cmake)
 find_package(OpenSSL REQUIRED)
 
-configure_file(Config.h.in include/Config.h)
+configure_file(BuildConfig.h.in include/BuildConfig.h)
 
 add_executable(fire-station
         Alarms.hpp
@@ -29,7 +29,7 @@ add_executable(fire-station
         Announcements.hpp
         Announcer.cpp
         Announcer.hpp
-        ${CMAKE_CURRENT_BINARY_DIR}/include/Config.h
+        ${CMAKE_CURRENT_BINARY_DIR}/include/BuildConfig.h
         Controller.cpp
         Controller.hpp
         Format.hpp
