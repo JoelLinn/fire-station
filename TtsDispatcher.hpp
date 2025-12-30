@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.hpp"
 #include "Ipc.hpp"
 
 namespace FireStation {
@@ -7,11 +8,12 @@ namespace FireStation {
 class TtsDispatcher {
   public:
     TtsDispatcher() = delete;
-    explicit TtsDispatcher(IPC::FifoSet &fifoSet);
+    TtsDispatcher(const Config &config, IPC::FifoSet &fifoSet);
 
     void threadFunc(const bool &keepRunning);
 
   private:
+    const Config &Conf;
     IPC::FifoSet &FifoSet;
 };
 

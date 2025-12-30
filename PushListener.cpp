@@ -4,7 +4,7 @@
 
 namespace FireStation {
 
-PushListener::PushListener(IPC::FifoSet &fifoSet) : FifoSet(fifoSet) {}
+PushListener::PushListener(const Config &config, IPC::FifoSet &fifoSet) : Conf(config), FifoSet(fifoSet) {
 
 void PushListener::threadFunc(const bool &keepRunning) {
     while (keepRunning) {

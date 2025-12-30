@@ -38,7 +38,7 @@ class Controller {
     };
 
     Controller() = delete;
-    Controller(IPC::FifoSet &fifoSet, const char *iface);
+    Controller(const Config &config, IPC::FifoSet &fifoSet);
     ~Controller();
 
     void threadFunc(const bool &keepRunning);
@@ -52,6 +52,7 @@ class Controller {
     bool Gate2NotClosedLast;
     Clock::time_point LightGarageToggleOff;
 
+    const Config &Conf;
     IPC::FifoSet &FifoSet;
     Fieldbus *IoFieldbus;
 

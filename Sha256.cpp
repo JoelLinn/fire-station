@@ -34,7 +34,7 @@ void calculateSha256(const void *data, size_t size, uint8_t out[SHA256_LENGTH]) 
     std::copy_n(digest.begin(), SHA256_LENGTH, out);
 }
 
-std::string sha256ToHex(uint8_t digest[SHA256_LENGTH]) {
+std::string sha256ToHex(const uint8_t digest[SHA256_LENGTH]) {
     std::string hex(SHA256_LENGTH * 2 + 1, '\0');
     if (OPENSSL_buf2hexstr_ex(hex.data(), hex.size(), nullptr, digest, SHA256_LENGTH, '\0') != 1) {
         throw std::runtime_error("Could not convert SHA256 digest to hex");

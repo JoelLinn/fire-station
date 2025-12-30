@@ -7,11 +7,11 @@ namespace FireStation {
 class PushListener {
   public:
     PushListener() = delete;
-    explicit PushListener(IPC::FifoSet &fifoSet);
+    PushListener(const Config &config, IPC::FifoSet &fifoSet);
 
     void threadFunc(const bool &keepRunning);
 
-  private:
+    const Config &Conf;
     IPC::FifoSet &FifoSet;
 };
 

@@ -1,7 +1,7 @@
 #include "Announcements.hpp"
 
-std::filesystem::path FireStation::getAnnouncementPath(StaticAnnouncement staticAnnouncement) {
-    std::filesystem::path path = std::filesystem::current_path().parent_path(); // TODO
+std::filesystem::path FireStation::getAnnouncementPath(const Config &config, StaticAnnouncement staticAnnouncement) {
+    const auto &path = config.getAnnouncementStaticDir();
     switch (staticAnnouncement) {
     case StaticAnnouncement::GONG_LONG:
         return path / "GongLong.wav";
@@ -12,7 +12,7 @@ std::filesystem::path FireStation::getAnnouncementPath(StaticAnnouncement static
     }
 }
 
-std::filesystem::path FireStation::getAnnouncementPath(TtsHash ttsAnnouncement) {
-    const auto fileName = (sha256ToHex(ttsAnnouncement.data()) + ".wav");
-    return std::filesystem::path("/tmp") / fileName;
+std::filesystem::path FireStation::getAnnouncementPath(const Config &config, const TtsHash &ttsAnnouncement) {
+    const auto fileName = sha256ToHex(ttsAnnouncement.data()) + ".wav";
+    return config.getAnnouncementTmpDir() / fileName;
 }

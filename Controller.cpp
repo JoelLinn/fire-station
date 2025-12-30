@@ -9,13 +9,13 @@ using namespace std::chrono_literals;
 constexpr auto ALARM_MAX_AGE = 20min;
 constexpr auto LIGHT_GARAGE_TOGGLE_DURATION = 500ms;
 
-FireStation::Controller::Controller(IPC::FifoSet &fifoSet, const char *iface /*TODO conf*/)
-    : Gate1NotClosedLast(false), Gate2NotClosedLast(false), LightGarageToggleOff(Clock::now()), FifoSet(fifoSet) {
+FireStation::Controller::Controller(const Config &config, IPC::FifoSet &fifoSet)
+    : Gate1NotClosedLast(false), Gate2NotClosedLast(false), LightGarageToggleOff(Clock::now()), Conf(config), FifoSet(fifoSet) {
     IoFieldbus = fieldbus_alloc();
     if (!IoFieldbus) {
         throw std::runtime_error("Failed to allocate fieldbus");
     }
-    fieldbus_initialize(IoFieldbus, iface, [](void *userdata, const void *in, void *out) {
+    fieldbus_initialize(IoFieldbus, config.getEthercatInterface().c_str(), [](void *userdata, const void *in, void *out) {
         if (!userdata || !in || !out) {
             return;
         }

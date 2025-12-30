@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 
 #include "Announcer.hpp"
+#include "Config.hpp"
 #include "Controller.hpp"
 #include "GeneralizedQueue.hpp"
 #include "Ipc.hpp"
@@ -29,22 +30,21 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // TODO config
     if (argc != 2) {
-        printf("Usage: fire-station IFNAME\n"
-               "IFNAME is the NIC interface name, e.g. 'eth0'\n");
+        std::cout << "Usage: " << argv[0] << " CONFIG_FILE" << std::endl;
+        std::cout << "CONFIG_FILE is the path to the json config file" << std::endl;
         return 1;
     }
-    const auto *ifname = argv[1];
+    Config config(argv[1]);
 
     // TODO gotify websocket stream thread
     // Will put new alarms in ring buffer to process thread
 
     IPC::FifoSet fifoSet;
-    PushListener pushListener(fifoSet);
-    Controller controller(fifoSet, ifname);
-    TtsDispatcher ttsDispatcher(fifoSet);
-    Announcer announcer(fifoSet);
+    PushListener pushListener(config, fifoSet);
+    Controller controller(config, fifoSet);
+    TtsDispatcher ttsDispatcher(config, fifoSet);
+    Announcer announcer(config, fifoSet);
 
     // Lock all memory pages required for physical I/O and processing
     if (mlockall(MCL_CURRENT) != 0) {
