@@ -2,6 +2,7 @@
 #include "Format.hpp"
 #include "RaiiHelpers.hpp"
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -36,11 +37,25 @@ Config::Config(const std::filesystem::path &configPath) {
     }
 
     announcementStaticDir = getJsonStringValue(*json, "announcementStaticDir");
+
+    const auto *jsonVehicleMappings = cJSON_GetObjectItem(json.get(), "vehicleMappings");
+    const cJSON *jsonVehicleMapping;
+    cJSON_ArrayForEach(jsonVehicleMapping, jsonVehicleMappings) {
+        const auto apiId = cJSON_GetNumberValue(cJSON_GetObjectItem(jsonVehicleMapping, "apiId"));
+        if (std::isnan(apiId)) {
+            throw std::runtime_error(fmt::format("Invalid vehicle mapping apiId {}", apiId));
+        }
+        const auto gateId = cJSON_GetNumberValue(cJSON_GetObjectItem(jsonVehicleMapping, "gateId"));
+        if (std::isnan(gateId)) {
+            throw std::runtime_error(fmt::format("Invalid vehicle mapping gateId {}", gateId));
+        }
+        vehicleMap[static_cast<uint64_t>(apiId)] = {static_cast<size_t>(gateId), getJsonStringValue(*jsonVehicleMapping, "name")};
+    }
 }
 
 Config::~Config() {
-    if (rmdir(announcementTmpDir.c_str()) != 0) {
-        std::cerr << "Failed to remove temporary directory: " << errno << std::endl;
+    if (std::filesystem::remove_all(announcementTmpDir) < 1) {
+        std::cerr << "Failed to remove temporary directory" << std::endl;
     }
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
 #include <string>
 
 typedef struct cJSON cJSON;
@@ -35,6 +36,10 @@ class Config {
         return announcementStaticDir;
     }
 
+    const std::map<uint64_t, std::tuple<size_t, std::string>> &getVehicleMap() const {
+        return vehicleMap;
+    }
+
   private:
     static std::string getJsonStringValue(const cJSON &root, const std::string &key);
 
@@ -45,5 +50,6 @@ class Config {
     std::string ethercatInterface;
     std::filesystem::path announcementTmpDir;
     std::filesystem::path announcementStaticDir;
+    std::map<uint64_t, std::tuple<size_t, std::string>> vehicleMap;
 };
 } // namespace FireStation
