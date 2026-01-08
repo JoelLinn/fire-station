@@ -13,6 +13,7 @@ struct Bye {};
 
 struct NewAlarm {
     std::shared_ptr<const std::string> Text;
+    TtsHash Hash;
     std::bitset<2> Gates;
     std::chrono::steady_clock::time_point Time;
 };

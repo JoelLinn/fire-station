@@ -52,15 +52,19 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
             break;
         }
 
-        TtsHash alarmHash;
-        calculateSha256(alarm->Text->data(), alarm->Text->size(), alarmHash.data());
         if (Alarms.size() + 1 == Alarms.capacity()) {
             std::cerr << "Too many alarms, removing oldest" << std::endl;
             Alarms.erase(Alarms.begin());
         }
         // Save to our List
-        Alarms.push_back({alarmHash, alarm->Gates, alarm->Time, false});
-        FifoSet.TtsOrder.TryPut(IPC::TtsOrderData{std::move(alarm->Text), alarmHash});
+        Alarms.push_back({alarm->Hash, alarm->Gates, alarm->Time, false});
+        FifoSet.TtsOrder.TryPut(IPC::TtsOrderData{std::move(alarm->Text), alarm->Hash});
+
+        if (alarm->Time + ALARM_MAX_AGE <= now) {
+            // Only break now so TtsDispatcher will destruct the string
+            std::cerr << "Received new alarm but it is already old" << std::endl;
+            break;
+        }
 
         // Play long gong for new alarms
         FifoSet.Announcement.TryPut(StaticAnnouncement::GONG_LONG);

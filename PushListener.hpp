@@ -3,6 +3,7 @@
 #include "Ipc.hpp"
 
 #include <string_view>
+#include <vector>
 
 namespace FireStation {
 
@@ -20,6 +21,7 @@ class PushListener {
   private:
     const Config &Conf;
     IPC::FifoSet &FifoSet;
+    std::vector<uint64_t> Alarms;
 };
 
 } // namespace FireStation
