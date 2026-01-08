@@ -21,32 +21,32 @@ include(cmake/fmt.cmake)
 include(cmake/SOEM.cmake)
 find_package(OpenSSL REQUIRED)
 
-configure_file(BuildConfig.h.in include/BuildConfig.h)
+configure_file(src/BuildConfig.h.in BuildConfig.h)
 
 add_executable(fire-station
-        Alarms.hpp
-        Announcements.cpp
-        Announcements.hpp
-        Announcer.cpp
-        Announcer.hpp
-        ${CMAKE_CURRENT_BINARY_DIR}/include/BuildConfig.h
-        Config.cpp
-        Config.hpp
-        Controller.cpp
-        Controller.hpp
-        Format.hpp
-        GeneralizedQueue.hpp
-        Ipc.hpp
-        PushListener.cpp
-        PushListener.hpp
-        RaiiHelpers.hpp
-        Sha256.cpp
-        Sha256.hpp
-        TtsDispatcher.cpp
-        TtsDispatcher.hpp
-        main.cpp
-        $<IF:$<BOOL:${FIRE_STATION_ETHERCAT_DUMMY}>,simple_ng_dummy.cpp,simple_ng.c>
-        simple_ng.h
+        src/Alarms.hpp
+        src/Announcements.cpp
+        src/Announcements.hpp
+        src/Announcer.cpp
+        src/Announcer.hpp
+        ${CMAKE_CURRENT_BINARY_DIR}/BuildConfig.h
+        src/Config.cpp
+        src/Config.hpp
+        src/Controller.cpp
+        src/Controller.hpp
+        src/Format.hpp
+        src/GeneralizedQueue.hpp
+        src/Ipc.hpp
+        src/PushListener.cpp
+        src/PushListener.hpp
+        src/RaiiHelpers.hpp
+        src/Sha256.cpp
+        src/Sha256.hpp
+        src/TtsDispatcher.cpp
+        src/TtsDispatcher.hpp
+        src/main.cpp
+        src/$<IF:$<BOOL:${FIRE_STATION_ETHERCAT_DUMMY}>,simple_ng_dummy.cpp,simple_ng.c>
+        src/simple_ng.h
 )
 target_include_directories(fire-station PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_link_libraries(fire-station PRIVATE
