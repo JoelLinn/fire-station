@@ -38,9 +38,9 @@ Config::Config(const std::filesystem::path &configPath) {
 
     announcementStaticDir = getJsonStringValue(*json, "announcementStaticDir");
 
-    const auto *jsonVehicleMappings = cJSON_GetObjectItem(json.get(), "vehicleMappings");
+    const auto *jsonVehicleMap = cJSON_GetObjectItem(json.get(), "vehicleMap");
     const cJSON *jsonVehicleMapping;
-    cJSON_ArrayForEach(jsonVehicleMapping, jsonVehicleMappings) {
+    cJSON_ArrayForEach(jsonVehicleMapping, jsonVehicleMap) {
         const auto apiId = cJSON_GetNumberValue(cJSON_GetObjectItem(jsonVehicleMapping, "apiId"));
         if (std::isnan(apiId)) {
             throw std::runtime_error(fmt::format("Invalid vehicle mapping apiId {}", apiId));
