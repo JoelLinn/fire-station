@@ -40,7 +40,7 @@ Config::Config(const std::filesystem::path &configPath) {
 
 Config::~Config() {
     if (rmdir(announcementTmpDir.c_str()) != 0) {
-        std::cerr << "Failed to remove temporary directory";
+        std::cerr << "Failed to remove temporary directory: " << errno << std::endl;
     }
 }
 

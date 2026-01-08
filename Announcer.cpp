@@ -57,7 +57,7 @@ void Announcer::threadFunc(const bool &keepRunning) {
             if (waitpid(pid, &status, 0) <= 0) {
                 std::cerr << "waitpid failed" << std::endl;
             } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-                std::cerr << "External tts program exited with error" << std::endl;
+                std::cerr << "External playback program exited with error" << std::endl;
             }
         }
     }
