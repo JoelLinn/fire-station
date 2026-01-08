@@ -164,8 +164,6 @@ void PushListener::threadFunc(const bool &keepRunning) {
 
     while (keepRunning) {
 #if 0
-        // TODO curl ws listen, also honor keepRunning flag
-
         std::this_thread::sleep_for(5s);
         // FifoSet.NewAlarm.Put({std::make_shared<const std::string>("TEST: Dies ist eine Testmeldung."), std::chrono::steady_clock::now()});
         FifoSet.NewAlarm.Put({std::make_shared<const std::string>("Kleinbrand. Schwarze Tonne. Maumke. Es rückt aus: LF10"), 0b01, std::chrono::steady_clock::now()});

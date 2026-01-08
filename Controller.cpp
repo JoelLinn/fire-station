@@ -118,7 +118,6 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
 
         if (inputs.AlarmActive) {
             if (!Alarms.empty()) {
-                // TODO Check if gates can still be closed by other inputs (remote)
                 const auto &gates = Alarms.back().Gates;
                 outputs.Gate1Open = gates.test(0);
                 outputs.Gate2Open = gates.test(1);

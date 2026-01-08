@@ -38,9 +38,6 @@ int main(int argc, char **argv) {
     }
     Config config(argv[1]);
 
-    // TODO gotify websocket stream thread
-    // Will put new alarms in ring buffer to process thread
-
     IPC::FifoSet fifoSet;
     PushListener pushListener(config, fifoSet);
     Controller controller(config, fifoSet);
