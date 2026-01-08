@@ -24,6 +24,7 @@ FireStation::Controller::Controller(const Config &config, IPC::FifoSet &fifoSet)
     if (!fieldbus_start(IoFieldbus)) {
         throw std::runtime_error("Failed to start fieldbus");
     }
+    std::cout << std::flush;
 
     Alarms.reserve(4);
 }
