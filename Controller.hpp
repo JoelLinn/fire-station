@@ -48,6 +48,7 @@ class Controller {
 
   private:
     bool AlarmBtnLast;
+    bool AlarmActiveLast;
     bool Gate1NotClosedLast;
     bool Gate2NotClosedLast;
     Clock::time_point LightGarageToggleOff;

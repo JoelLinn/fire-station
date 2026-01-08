@@ -10,7 +10,7 @@ constexpr auto ALARM_MAX_AGE = 20min;
 constexpr auto LIGHT_GARAGE_TOGGLE_DURATION = 500ms;
 
 FireStation::Controller::Controller(const Config &config, IPC::FifoSet &fifoSet)
-    : Gate1NotClosedLast(false), Gate2NotClosedLast(false), LightGarageToggleOff(Clock::now()), Conf(config), FifoSet(fifoSet) {
+    : AlarmBtnLast(false), AlarmActiveLast(false), Gate1NotClosedLast(false), Gate2NotClosedLast(false), LightGarageToggleOff(Clock::now()), Conf(config), FifoSet(fifoSet) {
     IoFieldbus = fieldbus_alloc();
     if (!IoFieldbus) {
         throw std::runtime_error("Failed to allocate fieldbus");
@@ -124,10 +124,15 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
                 outputs.Gate2Open = gates.test(1);
             }
         } else {
+            if (AlarmActiveLast) {
+                // Falling Edge
+                Alarms.erase(Alarms.begin());
+            }
             outputs.Gate1Open = outputs.Gate2Open = false;
         }
 
         AlarmBtnLast = inputs.AlarmBtn;
+        AlarmActiveLast = inputs.AlarmActive;
         Gate1NotClosedLast = inputs.Gate1NotClosed;
         Gate2NotClosedLast = inputs.Gate2NotClosed;
     }
