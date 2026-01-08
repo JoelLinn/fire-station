@@ -1,0 +1,19 @@
+{
+  "diveraAccessKey": "64 character api access key",
+  "piperExecutable": "piper",
+  "piperModelPath": "/path/to/de_DE-thorsten-high.onnx",
+  "ethercatInterface": "enp?",
+  "announcementStaticDir": "/usr/share/fire-station",
+  "vehicleMap" : [
+    {
+      "apiId" : 12345,
+      "gateId" : 0,
+      "name" : "Vehicle 1"
+    },
+    {
+      "apiId" : 12346,
+      "gateId" : 1,
+      "name" : "Vehicle 2"
+    }
+  ]
+}

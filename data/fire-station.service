@@ -1,0 +1,15 @@
+[Unit]
+Description=Fire Station
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+User=nobody
+AmbientCapabilities=CAP_NET_RAW CAP_IPC_LOCK CAP_SYS_NICE
+CapabilityBoundingSet=
+ExecStart=/usr/bin/fire-station /etc/fire-station
+
+[Install]
+WantedBy=multi-user.target

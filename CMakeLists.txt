@@ -21,7 +21,7 @@ include(cmake/fmt.cmake)
 include(cmake/SOEM.cmake)
 find_package(OpenSSL REQUIRED)
 
-configure_file(src/BuildConfig.h.in BuildConfig.h)
+configure_file(src/BuildConfig.h.in include/BuildConfig.h)
 
 add_executable(fire-station
         src/Alarms.hpp
@@ -61,9 +61,15 @@ target_compile_options(fire-station PRIVATE -Wall -Wextra -pedantic)
 
 install(TARGETS fire-station)
 
+install(FILES data/fire-station DESTINATION /etc PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ)
+install(FILES data/fire-station.service DESTINATION lib/systemd/system/)
+install(FILES data/GongLong.wav DESTINATION share/${PROJECT_NAME}/)
+install(FILES data/GongShort.wav DESTINATION share/${PROJECT_NAME}/)
+
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME} CACHE STRING "")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fire station automation." CACHE STRING "")
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/deb/conffiles")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Joel Linn" CACHE STRING "")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 if(NOT CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
