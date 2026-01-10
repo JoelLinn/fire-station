@@ -29,17 +29,76 @@ PushListener::~PushListener() {
     curl_global_cleanup();
 }
 
-bool PushListener::parseResponse(std::string_view jsonResponse) {
+std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::system_clock::duration>> PushListener::constructMessage(const cJSON *jsonItem) const {
+    const auto *title = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "title"));
+    const auto *text = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "text"));
+    const auto *address = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "address"));
+    const cJSON *jsonVehicle;
+    const auto &vehicleMap = Conf.getVehicleMap();
+    std::vector<std::remove_reference_t<decltype(vehicleMap)>::mapped_type> vehicles;
+    cJSON_ArrayForEach(jsonVehicle, cJSON_GetObjectItem(jsonItem, "vehicle")) {
+        const auto v = cJSON_GetNumberValue(jsonVehicle);
+        if (std::isnan(v)) {
+            std::cerr << "API failed to get vehicle" << std::endl;
+            return std::nullopt;
+        }
+        const auto vehicleMapping = vehicleMap.find(static_cast<uint64_t>(v));
+        if (vehicleMapping == vehicleMap.end()) {
+            std::cerr << "API failed to find mapped vehicle" << std::endl;
+            return std::nullopt;
+        }
+        vehicles.push_back(vehicleMapping->second);
+    }
+
+    std::string message;
+    if (title) {
+        message += title;
+        message += ". ";
+    }
+    if (text) {
+        message += text;
+        message += ". ";
+    }
+    if (address) {
+        message += address;
+        message += ". ";
+    }
+    IPC::GatesType gates;
+    if (vehicles.size() == 1) {
+        gates.set(std::get<0>(vehicles[0]));
+        message += "Es rückt aus: " + std::get<1>(vehicles[0]) + ".";
+    } else if (vehicles.size() > 1) {
+        message += "Es rücken aus:";
+        for (const auto &vehicle : vehicles) {
+            gates.set(std::get<0>(vehicle));
+            message += " " + std::get<1>(vehicle);
+        }
+        message += ".";
+    }
+
+    const auto date = cJSON_GetNumberValue(cJSON_GetObjectItem(jsonItem, "date"));
+    if (std::isnan(date)) {
+        std::cerr << "API failed to get date" << std::endl;
+        return std::nullopt;
+    }
+    // Need to convert to steady clock
+    // const auto age = std::chrono::system_clock::now().time_since_epoch() - std::chrono::seconds(static_cast<uint64_t>(date));
+    const auto age = 0s;
+
+    return std::make_tuple(std::move(message), gates, age);
+}
+
+void PushListener::parseResponse(std::string_view jsonResponse) {
     std::unique_ptr<cJSON, RAII::DeleterFunc<cJSON_Delete>> json(cJSON_ParseWithLength(jsonResponse.data(), jsonResponse.size()));
 
     if (!json) {
         std::cerr << "cJSON_ParseWithLength failed" << jsonResponse.data() << std::endl;
-        return false;
+        return;
     }
 
     if (cJSON_IsFalse(cJSON_GetObjectItem(json.get(), "success"))) {
         std::cerr << "API query unsuccessful" << std::endl;
-        return false;
+        return;
     }
 
     const auto *jsonItems = cJSON_GetObjectItem(cJSON_GetObjectItem(json.get(), "data"), "items");
@@ -54,79 +113,34 @@ bool PushListener::parseResponse(std::string_view jsonResponse) {
             std::cerr << "API failed to get id" << std::endl;
             continue;
         }
-        const auto idU64 = static_cast<uint64_t>(id);
-        if (std::ranges::find(Alarms, idU64) == Alarms.end()) {
-            // New alarm
-            Alarms.push_back(idU64);
-            {
+        const auto idNum = static_cast<AlarmId>(id);
+        const auto messageRes = constructMessage(jsonItem);
+        if (!messageRes) {
+            continue;
+        }
+        const auto [message, gates, age] = *messageRes;
+        TtsHash ttsHash;
+        calculateSha256(message.data(), message.size(), ttsHash.data());
 
-                std::unique_ptr<char, RAII::DeleterFunc<cJSON_free>> s(cJSON_PrintUnformatted(jsonItem));
-                if (s) {
-                    std::cout << s.get() << std::endl;
-                }
-            }
-            const auto *title = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "title"));
-            const auto *text = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "text"));
-            const auto *address = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "address"));
-            const cJSON *jsonVehicle;
-            const auto &vehicleMap = Conf.getVehicleMap();
-            std::vector<std::remove_reference_t<decltype(vehicleMap)>::mapped_type> vehicles;
-            cJSON_ArrayForEach(jsonVehicle, cJSON_GetObjectItem(jsonItem, "vehicle")) {
-                const auto v = cJSON_GetNumberValue(jsonVehicle);
-                if (std::isnan(v)) {
-                    std::cerr << "API failed to get vehicle" << std::endl;
-                    continue;
-                }
-                const auto vehicleMapping = vehicleMap.find(static_cast<uint64_t>(v));
-                if (vehicleMapping == vehicleMap.end()) {
-                    std::cerr << "API failed to find mapped vehicle" << std::endl;
-                    continue;
-                }
-                vehicles.push_back(vehicleMapping->second);
-            }
+        bool sendUpdate;
+        // Search if id exists in list already
+        if (auto it = std::ranges::find_if(Alarms, [idNum](const auto &alarm) { return std::get<0>(alarm) == idNum; }); it == Alarms.end()) {
+            // New Alarm
+            Alarms.push_back({idNum, ttsHash});
+            sendUpdate = true;
+        } else {
+            // Existing alarm but maybe changed text (and gates)
 
-            std::string message;
-            if (title) {
-                message += title;
-                message += ". ";
+            const auto &oldTtsHash = std::get<1>(*it);
+            sendUpdate = !std::equal(ttsHash.begin(), ttsHash.end(), oldTtsHash.begin());
+            if (sendUpdate) {
+                *it = {idNum, ttsHash};
             }
-            if (text) {
-                message += text;
-                message += ". ";
-            }
-            if (address) {
-                message += address;
-                message += ". ";
-            }
-            decltype(IPC::NewAlarm::Gates) gates;
-            if (vehicles.size() == 1) {
-                gates.set(std::get<0>(vehicles[0]));
-                message += "Es rückt aus: " + std::get<1>(vehicles[0]) + ".";
-            } else if (vehicles.size() > 1) {
-                message += "Es rücken aus:";
-                for (const auto &vehicle : vehicles) {
-                    gates.set(std::get<0>(vehicle));
-                    message += " " + std::get<1>(vehicle);
-                }
-                message += ".";
-            }
-
-            const auto date = cJSON_GetNumberValue(cJSON_GetObjectItem(jsonItem, "date"));
-            if (std::isnan(date)) {
-                std::cerr << "API failed to get date" << std::endl;
-                continue;
-            }
-            // Need to convert to steady clock
-            const auto age = std::chrono::system_clock::now().time_since_epoch() - std::chrono::seconds(static_cast<uint64_t>(date));
-
-            TtsHash alarmHash;
-            calculateSha256(message.data(), message.size(), alarmHash.data());
-
-            FifoSet.NewAlarm.Put({std::make_shared<const std::string>(std::move(message)), alarmHash, gates, std::chrono::steady_clock::now() - age});
+        }
+        if (sendUpdate) {
+            FifoSet.NewAlarm.Put({idNum, std::make_shared<const std::string>(std::move(message)), ttsHash, gates, std::chrono::steady_clock::now() - age});
         }
     }
-
-    return true;
 }
 
 template <typename T>
@@ -178,9 +192,7 @@ void PushListener::threadFunc(const bool &keepRunning) {
             continue;
         }
 
-        if (!parseResponse(curlResultBuffer)) {
-            std::cerr << "Failed to parse api response" << std::endl;
-        }
+        parseResponse(curlResultBuffer);
 
         if (Conf.getDiveraDebugApi()) {
             if (curlResultBuffer != curlResultBufferLast) {

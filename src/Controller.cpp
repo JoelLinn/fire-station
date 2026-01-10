@@ -57,8 +57,16 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
             std::cerr << "Too many alarms, removing oldest" << std::endl;
             Alarms.erase(Alarms.begin());
         }
-        // Save to our List
-        Alarms.push_back({alarm->Hash, alarm->Gates, alarm->Time, false});
+        bool isNew;
+        if (const auto it = std::ranges::find_if(Alarms, [&alarm](const auto &hay) { return hay.Id == alarm->Id; }); it != Alarms.end()) {
+            // Alarm id already in list, update
+            isNew = false;
+            *it = {alarm->Id, alarm->Hash, alarm->Gates, alarm->Time, false};
+        } else {
+            // Save new Alarm to our List
+            isNew = true;
+            Alarms.push_back({alarm->Id, alarm->Hash, alarm->Gates, alarm->Time, false});
+        }
         FifoSet.TtsOrder.TryPut(IPC::TtsOrderData{std::move(alarm->Text), alarm->Hash});
 
         if (alarm->Time + ALARM_MAX_AGE <= now) {
@@ -67,8 +75,9 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
             break;
         }
 
-        // Play long gong for new alarms
-        FifoSet.Announcement.TryPut(StaticAnnouncement::GONG_LONG);
+        if (isNew) {
+            FifoSet.Announcement.TryPut(StaticAnnouncement::GONG_LONG);
+        }
     }
 
     // Update alarm tts status
@@ -117,18 +126,19 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
             }
         }
 
-        if (inputs.AlarmActive) {
+        if (inputs.AlarmBtn) {
             if (!Alarms.empty()) {
                 const auto &gates = Alarms.back().Gates;
                 outputs.Gate1Open = gates.test(0);
                 outputs.Gate2Open = gates.test(1);
             }
         } else {
-            if (AlarmActiveLast) {
-                // Falling Edge
-                Alarms.erase(Alarms.begin());
-            }
             outputs.Gate1Open = outputs.Gate2Open = false;
+        }
+
+        if (inputs.AlarmActive && AlarmActiveLast) {
+            // Falling Edge
+            Alarms.erase(Alarms.begin());
         }
 
         AlarmBtnLast = inputs.AlarmBtn;

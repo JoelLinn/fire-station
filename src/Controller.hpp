@@ -58,6 +58,7 @@ class Controller {
     Fieldbus *IoFieldbus;
 
     struct Alarm {
+        AlarmId Id;
         TtsHash Hash{};
         std::bitset<2> Gates;
         Clock::time_point Time{};

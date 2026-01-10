@@ -11,10 +11,13 @@ namespace FireStation::IPC {
 // Send by terminating thread to outgoing Fifos with blocking consumers
 struct Bye {};
 
+using GatesType = std::bitset<2>;
+
 struct NewAlarm {
+    AlarmId Id;
     std::shared_ptr<const std::string> Text;
     TtsHash Hash;
-    std::bitset<2> Gates;
+    GatesType Gates;
     std::chrono::steady_clock::time_point Time;
 };
 

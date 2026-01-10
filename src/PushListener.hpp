@@ -16,12 +16,13 @@ class PushListener {
     void threadFunc(const bool &keepRunning);
 
   private:
-    bool parseResponse(std::string_view jsonResponse);
+    std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::system_clock::duration>> constructMessage(const cJSON *jsonItem) const;
+    void parseResponse(std::string_view jsonResponse);
 
   private:
     const Config &Conf;
     IPC::FifoSet &FifoSet;
-    std::vector<uint64_t> Alarms;
+    std::vector<std::tuple<AlarmId, TtsHash>> Alarms;
 };
 
 } // namespace FireStation
