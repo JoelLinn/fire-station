@@ -82,8 +82,7 @@ std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::system_clock:
         return std::nullopt;
     }
     // Need to convert to steady clock
-    // const auto age = std::chrono::system_clock::now().time_since_epoch() - std::chrono::seconds(static_cast<uint64_t>(date));
-    const auto age = 0s;
+    const auto age = std::chrono::system_clock::now().time_since_epoch() - std::chrono::seconds(static_cast<uint64_t>(date));
 
     return std::make_tuple(std::move(message), gates, age);
 }

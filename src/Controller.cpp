@@ -136,9 +136,11 @@ void FireStation::Controller::process(const Inputs &inputs, Outputs &outputs) {
             outputs.Gate1Open = outputs.Gate2Open = false;
         }
 
-        if (inputs.AlarmActive && AlarmActiveLast) {
+        if (!inputs.AlarmActive && AlarmActiveLast) {
             // Falling Edge
-            Alarms.erase(Alarms.begin());
+            if (!Alarms.empty()) {
+                Alarms.erase(Alarms.begin());
+            }
         }
 
         AlarmBtnLast = inputs.AlarmBtn;

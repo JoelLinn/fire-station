@@ -37,7 +37,6 @@ class Controller {
         bool Res8 : 1;
     };
 
-    Controller() = delete;
     Controller(const Config &config, IPC::FifoSet &fifoSet);
     ~Controller();
 
@@ -60,7 +59,7 @@ class Controller {
     struct Alarm {
         AlarmId Id;
         TtsHash Hash{};
-        std::bitset<2> Gates;
+        IPC::GatesType Gates;
         Clock::time_point Time{};
         bool TtsReady{false};
     };
