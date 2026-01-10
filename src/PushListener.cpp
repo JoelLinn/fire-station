@@ -138,6 +138,7 @@ void PushListener::parseResponse(std::string_view jsonResponse) {
             }
         }
         if (sendUpdate) {
+            std::cout << message << std::endl;
             FifoSet.NewAlarm.Put({idNum, std::make_shared<const std::string>(std::move(message)), ttsHash, gates, std::chrono::steady_clock::now() - age});
         }
     }
@@ -181,7 +182,8 @@ void PushListener::threadFunc(const bool &keepRunning) {
 #if 0
         std::this_thread::sleep_for(5s);
         // FifoSet.NewAlarm.Put({std::make_shared<const std::string>("TEST: Dies ist eine Testmeldung."), std::chrono::steady_clock::now()});
-        FifoSet.NewAlarm.Put({std::make_shared<const std::string>("Kleinbrand. Schwarze Tonne. Maumke. Es rückt aus: LF10"), 0b01, std::chrono::steady_clock::now()});
+        //FifoSet.NewAlarm.Put({std::make_shared<const std::string>("Kleinbrand. Schwarze Tonne. Maumke. Es rückt aus: LF10"), 0b01, std::chrono::steady_clock::now()});
+        parseResponse(R"({"success":true,"data":{"items":{"30809056":{"id":30809056,"author_id":253278,"cluster_id":30870,"alarmcode_id":0,"message_channel_id":8962137,"foreign_id":"1260000493","title":"Feuer 1 - Kaminbrand","text":"Meldender: Meldender: H\u00f6rig","report":"","address":"Waldstra\u00dfe 3, 57368 Lennestadt Oberelspe","lat":51.15741188,"lng":8.08980479,"priority":true,"date":1767649572,"new":false,"editable":false,"answerable":false,"notification_type":3,"vehicle":[90710,90716],"group":[162591,163011],"cluster":[],"user_cluster_relation":[],"hidden":false,"deleted":false,"message_channel":true,"custom_answers":true,"attachment_count":0,"closed":false,"close_state":-1,"duration":"","ts_response":1767653172,"response_time":3600,"ucr_addressed":[88760,88827,88848,88907,88912,89193,89194,89204,89286,89287,89288,89290,89291,89293,89294,89295,89297,89298,89300,89301,89307,143894,308124,308135,563041,722129,773016],"ucr_answered":{"98328":{"89286":{"ts":1767649762,"note":""},"89193":{"ts":1767649580,"note":""}},"98329":{"89194":{"ts":1767649691,"note":""},"88912":{"ts":1767649635,"note":""},"89204":{"ts":1767649629,"note":""},"89290":{"ts":1767649603,"note":""},"308135":{"ts":1767649598,"note":""},"308124":{"ts":1767649588,"note":""},"89294":{"ts":1767649584,"note":""}}},"ucr_answeredcount":{"98328":2,"98329":7},"ucr_read":[88760,88848,88907,88912,89193,89194,89204,89286,89288,89290,89294,89295,89298,89307,143894,308124,308135,563041,722129],"ucr_self_addressed":false,"count_recipients":27,"count_read":19,"private_mode":false,"custom":[],"ts_publish":0,"ts_create":1767649572,"ts_update":1767678143,"ts_close":0,"notification_filter_vehicle":false,"notification_filter_status":true,"notification_filter_shift_plan":0,"notification_filter_access":false,"notification_filter_status_access":false,"ucr_self_status_id":0,"ucr_self_note":""}},"sorting":[30809056]},"ucr":711547})");
         std::this_thread::sleep_for(20s);
 #else
         curlResultBuffer.resize(0);
