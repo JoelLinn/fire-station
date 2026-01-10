@@ -16,6 +16,10 @@ class Config {
         return diveraAccessKey;
     }
 
+    bool getDiveraDebugApi() const {
+        return diveraDebugApi;
+    }
+
     const std::string &getPiperExecutable() const {
         return piperExecutable;
     }
@@ -45,6 +49,7 @@ class Config {
 
   private:
     std::string diveraAccessKey;
+    bool diveraDebugApi;
     std::string piperExecutable;
     std::string piperModelPath;
     std::string ethercatInterface;

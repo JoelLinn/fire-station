@@ -150,6 +150,7 @@ static size_t curlStdStringWriteFunction(void *ptr, size_t size, size_t nmemb, v
 void PushListener::threadFunc(const bool &keepRunning) {
     std::array<char, CURL_ERROR_SIZE + 1> curlErrorBuffer{};
     std::string curlResultBuffer{};
+    std::string curlResultBufferLast{}; // Used when Conf.getDiveraDebugApi()
     std::unique_ptr<CURL, RAII::DeleterFunc<curl_easy_cleanup>> curl(curl_easy_init());
     if (!curl) {
         throw std::runtime_error("curl_easy_init failed");
@@ -177,7 +178,16 @@ void PushListener::threadFunc(const bool &keepRunning) {
             continue;
         }
 
-        parseResponse(curlResultBuffer);
+        if (!parseResponse(curlResultBuffer)) {
+            std::cerr << "Failed to parse api response" << std::endl;
+        }
+
+        if (Conf.getDiveraDebugApi()) {
+            if (curlResultBuffer != curlResultBufferLast) {
+                std::cout << curlResultBuffer << std::endl;
+            }
+            std::swap(curlResultBufferLast, curlResultBuffer);
+        }
 
         std::this_thread::sleep_for(PUSH_LISTENER_POLL_INTERVAL);
 #endif

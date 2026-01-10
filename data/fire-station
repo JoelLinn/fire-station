@@ -1,5 +1,6 @@
 {
   "diveraAccessKey": "64 character api access key",
+  "diveraDebugApi" : false,
   "piperExecutable": "piper",
   "piperModelPath": "/path/to/de_DE-thorsten-high.onnx",
   "ethercatInterface": "enp?",

@@ -24,6 +24,9 @@ Config::Config(const std::filesystem::path &configPath) {
     }
 
     diveraAccessKey = getJsonStringValue(*json, "diveraAccessKey");
+
+    diveraDebugApi = !!cJSON_IsTrue(cJSON_GetObjectItem(json.get(), "diveraDebugApi"));
+
     piperExecutable = getJsonStringValue(*json, "piperExecutable");
     piperModelPath = getJsonStringValue(*json, "piperModelPath");
     ethercatInterface = getJsonStringValue(*json, "ethercatInterface");
