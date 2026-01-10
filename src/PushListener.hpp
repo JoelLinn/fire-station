@@ -16,7 +16,7 @@ class PushListener {
     void threadFunc(const bool &keepRunning);
 
   private:
-    std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::system_clock::duration>> constructMessage(const cJSON *jsonItem) const;
+    std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::steady_clock::time_point>> constructMessage(const cJSON *jsonItem) const;
     void parseResponse(std::string_view jsonResponse);
 
   private:

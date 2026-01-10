@@ -29,7 +29,7 @@ PushListener::~PushListener() {
     curl_global_cleanup();
 }
 
-std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::system_clock::duration>> PushListener::constructMessage(const cJSON *jsonItem) const {
+std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::steady_clock::time_point>> PushListener::constructMessage(const cJSON *jsonItem) const {
     const auto *title = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "title"));
     const auto *text = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "text"));
     const auto *address = cJSON_GetStringValue(cJSON_GetObjectItem(jsonItem, "address"));
@@ -83,8 +83,9 @@ std::optional<std::tuple<std::string, IPC::GatesType, std::chrono::system_clock:
     }
     // Need to convert to steady clock
     const auto age = std::chrono::system_clock::now().time_since_epoch() - std::chrono::seconds(static_cast<uint64_t>(date));
+    const auto time = std::chrono::steady_clock::now() - age;
 
-    return std::make_tuple(std::move(message), gates, age);
+    return std::make_tuple(std::move(message), gates, time);
 }
 
 void PushListener::parseResponse(std::string_view jsonResponse) {
@@ -117,7 +118,7 @@ void PushListener::parseResponse(std::string_view jsonResponse) {
         if (!messageRes) {
             continue;
         }
-        const auto [message, gates, age] = *messageRes;
+        const auto [message, gates, time] = *messageRes;
         TtsHash ttsHash;
         calculateSha256(message.data(), message.size(), ttsHash.data());
 
@@ -138,7 +139,7 @@ void PushListener::parseResponse(std::string_view jsonResponse) {
         }
         if (sendUpdate) {
             std::cout << message << std::endl;
-            FifoSet.NewAlarm.Put({idNum, std::make_shared<const std::string>(std::move(message)), ttsHash, gates, std::chrono::steady_clock::now() - age});
+            FifoSet.NewAlarm.Put({idNum, std::make_shared<const std::string>(std::move(message)), ttsHash, gates, time});
         }
     }
 }
